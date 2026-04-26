@@ -1,0 +1,97 @@
+4prc
+
+#include <iostream>
+#include <vector>
+#include <omp.h>
+#include <ctime>
+using namespace std;
+
+// Sequential Vector Addition
+void sequentialVectorAdd(vector<int>& A, vector<int>& B, vector<int>& C, int n) {
+    for (int i = 0; i < n; i++) {
+        C[i] = A[i] + B[i];
+    }
+}
+
+// Parallel Vector Addition using OpenMP
+void parallelVectorAdd(vector<int>& A, vector<int>& B, vector<int>& C, int n) {
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        C[i] = A[i] + B[i];
+    }
+}
+
+int main() {
+    cout << "=== Vector Addition using OpenMP ===" << endl;
+
+    int n;
+    cout << "\nEnter size of vectors: ";
+    cin >> n;
+
+    vector<int> A(n), B(n), C(n), D(n);
+
+    // user input for Vector A
+    cout << "\nEnter " << n << " elements for Vector A: ";
+    for (int i = 0; i < n; i++)
+        cin >> A[i];
+
+    // user input for Vector B
+    cout << "Enter " << n << " elements for Vector B: ";
+    for (int i = 0; i < n; i++)
+        cin >> B[i];
+
+    // print vectors
+    cout << "\nVector A: ";
+    for (int i = 0; i < n; i++)
+        cout << A[i] << " ";
+
+    cout << "\nVector B: ";
+    for (int i = 0; i < n; i++)
+        cout << B[i] << " ";
+    cout << endl;
+
+    // ====================
+    // SEQUENTIAL ADDITION
+    // ====================
+    cout << "\n--- Sequential Vector Addition ---" << endl;
+
+    clock_t seqStart = clock();
+    sequentialVectorAdd(A, B, C, n);
+    clock_t seqEnd = clock();
+    double seqTime = double(seqEnd - seqStart) / CLOCKS_PER_SEC;
+
+    cout << "Result C: ";
+    for (int i = 0; i < n; i++)
+        cout << C[i] << " ";
+    cout << endl;
+    cout << "Time taken: " << seqTime << " seconds" << endl;
+
+    // ====================
+    // PARALLEL ADDITION
+    // ====================
+    cout << "\n--- Parallel Vector Addition ---" << endl;
+
+    clock_t parStart = clock();
+    parallelVectorAdd(A, B, D, n);
+    clock_t parEnd = clock();
+    double parTime = double(parEnd - parStart) / CLOCKS_PER_SEC;
+
+    cout << "Result C: ";
+    for (int i = 0; i < n; i++)
+        cout << D[i] << " ";
+    cout << endl;
+    cout << "Time taken: " << parTime << " seconds" << endl;
+
+    // ====================
+    // PERFORMANCE COMPARISON
+    // ====================
+    cout << "\n=== Performance Comparison ===" << endl;
+    cout << "Sequential Time : " << seqTime << " seconds" << endl;
+    cout << "Parallel Time   : " << parTime << " seconds" << endl;
+    if (parTime > 0)
+        cout << "Speedup         : " << seqTime / parTime << "x faster" << endl;
+    else
+        cout << "Speedup         : Parallel was too fast to measure!" << endl;
+
+    return 0;
+}
