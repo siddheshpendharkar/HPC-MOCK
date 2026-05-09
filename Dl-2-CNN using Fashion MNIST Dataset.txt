@@ -64,5 +64,37 @@ print("Test Accuracy :", accuracy)
 # Predict Sample
 prediction = model.predict(X_test[:1])
 
+class_names = ['T-shirt/top', 'Trouser', 'Pullover',
+               'Dress', 'Coat', 'Sandal',
+               'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+plt.figure(figsize=(10,10))
+
+#tosee the class names 
+
+class_names = ['T-shirt/top', 'Trouser', 'Pullover',
+               'Dress', 'Coat', 'Sandal',
+               'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+print("Class Number\tClothing Category\n")
+
+for i in range(len(class_names)):
+    print(i, "\t\t", class_names[i])
+
+
+#to see the data set 
+
+for i in range(9):
+
+    plt.subplot(3,3,i+1)
+
+    plt.imshow(X_train[i], cmap='gray')
+
+    plt.title(f"{y_train[i]} - {class_names[y_train[i]]}")
+
+    plt.axis('off')
+
+plt.show()
+
 print("Predicted Class :", prediction.argmax())
 print("Actual Class :", y_test[0])
