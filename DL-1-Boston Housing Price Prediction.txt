@@ -78,3 +78,9 @@ mae = mean_absolute_error(y_test, y_pred)
 
 print("Mean Squared Error :", mse)
 print("Mean Absolute Error :", mae)
+
+
+#print actual and prediced house price 
+for i in range(5):
+    print("Actual:", y_test.iloc[i]*1000,
+          "Predicted:", y_pred[i][0]*1000)
