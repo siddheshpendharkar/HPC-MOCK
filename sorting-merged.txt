@@ -1,0 +1,334 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+#include <ctime>
+
+using namespace std;
+
+
+// ================= BUBBLE SORT =================
+
+// Sequential Bubble Sort
+void sequentialBubbleSort(vector<int> arr) {
+
+    int n = arr.size();
+
+    for (int i = 0; i < n - 1; i++) {
+
+        for (int j = 0; j < n - i - 1; j++) {
+
+            if (arr[j] > arr[j + 1]) {
+
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+
+    cout << "\nSequential Bubble Sorted Array: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cout << arr[i] << " ";
+    }
+
+    cout << endl;
+}
+
+
+// Parallel Bubble Sort
+void parallelBubbleSort(vector<int> arr) {
+
+    int n = arr.size();
+
+    for (int i = 0; i < n; i++) {
+
+        if (i % 2 == 1) {
+
+            #pragma omp parallel for
+            for (int j = 1; j < n - 1; j += 2) {
+
+                if (arr[j] > arr[j + 1]) {
+
+                    swap(arr[j], arr[j + 1]);
+                }
+            }
+        }
+
+        else {
+
+            #pragma omp parallel for
+            for (int j = 0; j < n - 1; j += 2) {
+
+                if (arr[j] > arr[j + 1]) {
+
+                    swap(arr[j], arr[j + 1]);
+                }
+            }
+        }
+    }
+
+    cout << "\nParallel Bubble Sorted Array: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cout << arr[i] << " ";
+    }
+
+    cout << endl;
+}
+
+
+
+// ================= MERGE SORT =================
+
+// Merge Function
+void merge(vector<int>& arr, int left, int mid, int right) {
+
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; i++)
+        L[i] = arr[left + i];
+
+    for (int j = 0; j < n2; j++)
+        R[j] = arr[mid + 1 + j];
+
+    int i = 0;
+    int j = 0;
+    int k = left;
+
+    while (i < n1 && j < n2) {
+
+        if (L[i] <= R[j]) {
+
+            arr[k] = L[i];
+            i++;
+        }
+
+        else {
+
+            arr[k] = R[j];
+            j++;
+        }
+
+        k++;
+    }
+
+    while (i < n1) {
+
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+}
+
+
+// Sequential Merge Sort
+void sequentialMergeSort(vector<int>& arr, int left, int right) {
+
+    if (left < right) {
+
+        int mid = (left + right) / 2;
+
+        sequentialMergeSort(arr, left, mid);
+
+        sequentialMergeSort(arr, mid + 1, right);
+
+        merge(arr, left, mid, right);
+    }
+}
+
+
+// Parallel Merge Sort
+void parallelMergeSort(vector<int>& arr, int left, int right, int depth) {
+
+    if (left < right) {
+
+        int mid = (left + right) / 2;
+
+        if (depth <= 3) {
+
+            #pragma omp parallel sections
+            {
+
+                #pragma omp section
+                {
+                    parallelMergeSort(arr, left, mid, depth + 1);
+                }
+
+                #pragma omp section
+                {
+                    parallelMergeSort(arr, mid + 1, right, depth + 1);
+                }
+            }
+        }
+
+        else {
+
+            sequentialMergeSort(arr, left, mid);
+
+            sequentialMergeSort(arr, mid + 1, right);
+        }
+
+        merge(arr, left, mid, right);
+    }
+}
+
+
+
+// ================= MAIN =================
+
+int main() {
+
+    cout << "===== Parallel Bubble Sort and Merge Sort =====" << endl;
+
+    int n;
+
+    cout << "\nEnter number of elements: ";
+    cin >> n;
+
+    vector<int> arr(n);
+
+    cout << "Enter elements: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cin >> arr[i];
+    }
+
+    cout << "\nOriginal Array: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cout << arr[i] << " ";
+    }
+
+    cout << endl;
+
+
+    // ================= BUBBLE SORT =================
+
+    vector<int> bubble1 = arr;
+    vector<int> bubble2 = arr;
+
+    cout << "\n===== Bubble Sort =====" << endl;
+
+    clock_t seqBubbleStart = clock();
+
+    sequentialBubbleSort(bubble1);
+
+    clock_t seqBubbleEnd = clock();
+
+    double seqBubbleTime =
+    double(seqBubbleEnd - seqBubbleStart) / CLOCKS_PER_SEC;
+
+    cout << "Sequential Time: "
+         << seqBubbleTime
+         << " seconds" << endl;
+
+
+    clock_t parBubbleStart = clock();
+
+    parallelBubbleSort(bubble2);
+
+    clock_t parBubbleEnd = clock();
+
+    double parBubbleTime =
+    double(parBubbleEnd - parBubbleStart) / CLOCKS_PER_SEC;
+
+    cout << "Parallel Time: "
+         << parBubbleTime
+         << " seconds" << endl;
+
+
+
+    // ================= MERGE SORT =================
+
+    vector<int> merge1 = arr;
+    vector<int> merge2 = arr;
+
+    cout << "\n===== Merge Sort =====" << endl;
+
+    clock_t seqMergeStart = clock();
+
+    sequentialMergeSort(merge1, 0, n - 1);
+
+    clock_t seqMergeEnd = clock();
+
+    double seqMergeTime =
+    double(seqMergeEnd - seqMergeStart) / CLOCKS_PER_SEC;
+
+    cout << "\nSequential Merge Sorted Array: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cout << merge1[i] << " ";
+    }
+
+    cout << endl;
+
+    cout << "Sequential Time: "
+         << seqMergeTime
+         << " seconds" << endl;
+
+
+
+    clock_t parMergeStart = clock();
+
+    parallelMergeSort(merge2, 0, n - 1, 0);
+
+    clock_t parMergeEnd = clock();
+
+    double parMergeTime =
+    double(parMergeEnd - parMergeStart) / CLOCKS_PER_SEC;
+
+    cout << "\nParallel Merge Sorted Array: ";
+
+    for (int i = 0; i < n; i++) {
+
+        cout << merge2[i] << " ";
+    }
+
+    cout << endl;
+
+    cout << "Parallel Time: "
+         << parMergeTime
+         << " seconds" << endl;
+
+
+
+    // ================= PERFORMANCE =================
+
+    cout << "\n===== Performance Comparison =====" << endl;
+
+    cout << "\nBubble Sort:" << endl;
+
+    cout << "Sequential Time : "
+         << seqBubbleTime
+         << " seconds" << endl;
+
+    cout << "Parallel Time   : "
+         << parBubbleTime
+         << " seconds" << endl;
+
+    cout << "\nMerge Sort:" << endl;
+
+    cout << "Sequential Time : "
+         << seqMergeTime
+         << " seconds" << endl;
+
+    cout << "Parallel Time   : "
+         << parMergeTime
+         << " seconds" << endl;
+
+    return 0;
+}
