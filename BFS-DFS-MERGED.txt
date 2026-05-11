@@ -1,0 +1,142 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <omp.h>
+
+using namespace std;
+
+int n, e;
+
+vector<int> graph[100];
+
+bool visitedBFS[100] = {false};
+bool visitedDFS[100] = {false};
+
+void parallelBFS(int start) {
+
+    queue<int> q;
+
+    q.push(start);
+    visitedBFS[start] = true;
+
+    cout << "\nBFS Traversal: ";
+
+    while (!q.empty()) {
+
+        vector<int> currentLevel;
+
+        while (!q.empty()) {
+
+            currentLevel.push_back(q.front());
+            q.pop();
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < currentLevel.size(); i++) {
+
+            int node = currentLevel[i];
+
+            #pragma omp critical
+            {
+                cout << node << " ";
+            }
+
+            for (int j = 0; j < graph[node].size(); j++) {
+
+                int neighbor = graph[node][j];
+
+                #pragma omp critical
+                {
+                    if (!visitedBFS[neighbor]) {
+
+                        visitedBFS[neighbor] = true;
+                        q.push(neighbor);
+                    }
+                }
+            }
+        }
+    }
+
+    cout << endl;
+}
+
+void parallelDFS(int node) {
+
+    visitedDFS[node] = true;
+
+    #pragma omp critical
+    {
+        cout << node << " ";
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < graph[node].size(); i++) {
+
+        int neighbor = graph[node][i];
+
+        bool shouldVisit = false;
+
+        #pragma omp critical
+        {
+            if (!visitedDFS[neighbor]) {
+
+                visitedDFS[neighbor] = true;
+                shouldVisit = true;
+            }
+        }
+
+        if (shouldVisit) {
+
+            parallelDFS(neighbor);
+        }
+    }
+}
+
+int main() {
+
+    cout << "Enter number of nodes: ";
+    cin >> n;
+
+    cout << "Enter number of edges: ";
+    cin >> e;
+
+    cout << "Enter edges:\n";
+
+    for (int i = 0; i < e; i++) {
+
+        int u, v;
+        cin >> u >> v;
+
+        graph[u].push_back(v);
+        graph[v].push_back(u);
+    }
+
+    int startNode;
+
+    cout << "Enter start node: ";
+    cin >> startNode;
+
+    cout << "\nGraph:\n";
+
+    for (int i = 1; i <= n; i++) {
+
+        cout << i << " --> ";
+
+        for (int j = 0; j < graph[i].size(); j++) {
+
+            cout << graph[i][j] << " ";
+        }
+
+        cout << endl;
+    }
+
+    parallelBFS(startNode);
+
+    cout << "\nDFS Traversal: ";
+
+    parallelDFS(startNode);
+
+    cout << endl;
+
+    return 0;
+}
