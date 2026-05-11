@@ -1,4 +1,9 @@
 2A sorting 
+%%writefile bubble.cpp
+!g++ -fopenmp bubble.cpp -o bubble
+!./bubble
+
+
 
 #include <iostream>
 #include <vector>
